@@ -60,10 +60,19 @@ export default class Game extends Phaser.Scene {
     this.recolectables = this.physics.add.group();
     //colision del personaje y los recolectables
     this.physics.add.collider(this.personaje, this.recolectables);
+
+    this.physics.add.collider(
+      this.personaje,
+      this.recolectables,
+      this.onShapeCollect,
+      null,
+      this
+    );
+    
     
 
     //reinicio
-    this.r = this.input.keyboard.addkey(Phaser.Input.Keyboard.Keycodes.R);
+    this.r = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
 
     //agregar evento de 3 segundo
@@ -101,7 +110,7 @@ export default class Game extends Phaser.Scene {
     recolectable.setVelocity(0, 100);
   }
 
-  onSecondCollect(personaje, recolectable, ) {
+  onShapeCollect(personaje, recolectable, ) {
     console.log("recolectables ", recolectable.texture.key)
     recolectable.destroy(); //se puede usar destroy o disable
   }
