@@ -45,7 +45,7 @@ export default class Game extends Phaser.Scene {
     this.personaje.setCollideWorldBounds(true);
 
     //agregar colision entre personaje y plataforma   // una version alternativa de agregar colision a plataformas / objetos (this.plataforma.setCollideWorldBounds(true))
-    this.physics.add.collider(this.personaje, this.plataformas);
+    this.physics.add.collider(this.personaje, this.plataformas);     
 
     //crea teclas // esto es para teclas como las flechas, la barra espaciadora y el enter
     this.cursor = this.input.keyboard.createCursorKeys();
@@ -54,17 +54,24 @@ export default class Game extends Phaser.Scene {
 
     //crea grupo de recolectables/coleccionables
     this.recolectables = this.physics.add.group();
+    //colision del personaje y los recolectables
     this.physics.add.collider(this.personaje, this.recolectables);
+    //    VER
+    {
+    function collectObjetos (personaje, recolectables)
+    {
+        recolectables.disableBody(true, true);
+    }
+    }
 
-    //agregar evento de 1 segundo
+    //agregar evento de 3 segundo
     this.time.addEvent({
-      delay: 1000,
+      delay: 3000,
       callback: console.log("hola"),
       callback: this.onSecond,
       callbackScope: this,
       loop: true,
     });
-    
   }
 
   onSecond() {
