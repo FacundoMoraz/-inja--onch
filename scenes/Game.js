@@ -5,7 +5,10 @@ export default class Game extends Phaser.Scene {
     super("main");
   }
 
-  init() {}
+  init() {
+    this.gameOver = false;
+    this.timer = 10; // son segundos
+  }
 
   preload() {
     // cargar assets
@@ -27,7 +30,7 @@ export default class Game extends Phaser.Scene {
     this.load.image("triangulo", "../public/assets/triangle.png");
   }
 
-  create() {
+  create() { // todo lo que agrega algo en la pantalla va en el create
     //crear elementos
     this.cielo = this.add.image(400,300, "cielo");
     this.cielo.setScale(2);
@@ -45,7 +48,8 @@ export default class Game extends Phaser.Scene {
     this.personaje.setCollideWorldBounds(true);
 
     //agregar colision entre personaje y plataforma   // una version alternativa de agregar colision a plataformas / objetos (this.plataforma.setCollideWorldBounds(true))
-    this.physics.add.collider(this.personaje, this.plataformas);     
+    this.physics.add.collider(this.personaje, this.plataformas);// en los dos primero lugares dentro de este parentesis van los objetos que cuentan con la capacidad de colicionar entre si, en caso de ser varios objetos ponerlos dontro de un grupo y luego ponmer el nombre de ese grupo. Ademas en le puesto tres va la funcion callback que va a a hacer algo que nosotros definamos que haga, en el puesto cuatro va el "null" que es un codicier, y por ultimo el quinto puesto va el "this" que indica que funcion va a usar en una proxima funcion en caso que este seguido    
+
 
     //crea teclas // esto es para teclas como las flechas, la barra espaciadora y el enter
     this.cursor = this.input.keyboard.createCursorKeys();
@@ -56,13 +60,11 @@ export default class Game extends Phaser.Scene {
     this.recolectables = this.physics.add.group();
     //colision del personaje y los recolectables
     this.physics.add.collider(this.personaje, this.recolectables);
-    //    VER
-    {
-    function collectObjetos (personaje, recolectables)
-    {
-        recolectables.disableBody(true, true);
-    }
-    }
+    
+
+    //reinicio
+    this.r = this.input.keyboard.addkey(Phaser.Input.Keyboard.Keycodes.R);
+
 
     //agregar evento de 3 segundo
     this.time.addEvent({
@@ -72,10 +74,23 @@ export default class Game extends Phaser.Scene {
       callbackScope: this,
       loop: true,
     });
+      //evento de 1 segungo
+    this.time.addEvent({
+      delay: 1000,
+      callback: this.handlerTimer,
+      callbackScope: this,
+      loop: true,
+    });
+
+    //agregar texto de timer en la esquina superior derechaq
+    this.timerText = this.add.text(10, 10, `TIEMPO RESTANTE: ${this.timer}` , {
+      fontSize: "32px",
+      fill: "·fff",
+    });
   }
 
   onSecond() {
-    //crear respawneo recolectable
+    //crear respawneo recolectable   // funcion callback
     const tipos = ["triangulo","cuadrado","rombo"];
     const tipo = Phaser.Math.RND.pick(tipos);
     let recolectable = this.recolectables.create(
@@ -86,7 +101,28 @@ export default class Game extends Phaser.Scene {
     recolectable.setVelocity(0, 100);
   }
 
+  onSecondCollect(personaje, recolectable, ) {
+    console.log("recolectables ", recolectable.texture.key)
+    recolectable.destroy(); //se puede usar destroy o disable
+  }
+handleTimer() {
+      this.timer -= 1;
+      this.timerText.setText(`tiempo restante: ${this.timer}`);
+      if (this.timer === 0) {
+        this.gameOver = false;
+      }
+    }
+
   update() {
+    if (this.gameOver && this.r.isDown) {
+      this.Scene.restart();
+    }
+if (this.gameOver) {
+  this.physics.pause();
+    this.timerText.setText("Game Over")
+    return;
+}
+
     //movimiento del personaje
     if (this.cursor.left.isDown) {
       this.personaje.setVelocityX(-160);
