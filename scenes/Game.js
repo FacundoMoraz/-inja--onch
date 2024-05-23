@@ -7,12 +7,12 @@ export default class Game extends Phaser.Scene {
 
   init() {
     this.gameOver = false;
-    this.timer = 30; // son segundos
+    this.timer = 40; // son segundos
     this.score = 0; //contador de score
     this.figuras = { //grupo de figuras con su valor
-      "triangulo": {puntos: 10, cantidad: 0},
-      "cuadrado": {puntos: 20, cantidad: 0},
-      "rombo": {puntos: 30, cantidad: 0}
+      "triangulo": {puntos: 30, cantidad: 0},
+      "cuadrado": {puntos: 10, cantidad: 0},
+      "rombo": {puntos: 20, cantidad: 0}
     }
   }
 
@@ -64,9 +64,11 @@ export default class Game extends Phaser.Scene {
 
     //crea grupo de recolectables/coleccionables
     this.recolectables = this.physics.add.group();
+    
     //colision del personaje y los recolectables
-    this.physics.add.collider(this.personaje, this.recolectables);
-      // al contacto los recolectables desaparecen
+    //this.physics.add.collider(this.personaje, this.recolectables);
+      
+    // al contacto los recolectables desaparecen
     this.physics.add.collider(
       this.personaje,
       this.recolectables,
@@ -82,13 +84,20 @@ export default class Game extends Phaser.Scene {
 
 
       //evento de 1 segungo
-    this.time.addEvent({
-      delay: 2000, //tiempo entre spawneo de recolectables 3000=3 segundos
-      callback: this.handlerTimer,
-      callback: this.onSecond,
-      callbackScope: this,
-      loop: true,
-    });
+      this.time.addEvent({
+        delay: 2000, //tiempo entre spawneo de recolectables 1000=1 segundo
+        callback: this.handlerTimer,
+        callbackScope: this,
+        loop: true,
+      });
+  
+        //evento de 1 segungo
+      this.time.addEvent({
+        delay: 1000, 
+        callback: this.onSecond,
+        callbackScope: this,
+        loop: true,
+      });
 
     //agregar texto de timer en la esquina superior derechaq
     this.timerText = this.add.text(10, 10, `TIEMPO RESTANTE: ${this.timer}` , {
@@ -116,7 +125,7 @@ export default class Game extends Phaser.Scene {
       0,
       tipo
     );
-    recolectable.setVelocity(0, 50);
+    recolectable.setVelocity(0, 20);
   }
 
   onShapeCollect(personaje, recolectable, ) {
@@ -140,7 +149,7 @@ export default class Game extends Phaser.Scene {
       R: ${this.figuras["rombo"].cantidad}`
       );
         
-      const cumplePuntos = this.score >= 50;
+      const cumplePuntos = this.score >= 100;
       const cumpleFiguras = 
       this.figuras["triangulo"].cantidad >= 2 &&
       this.figuras["cuadrado"].cantidad >= 2 &&
@@ -185,9 +194,10 @@ if (this.gameOver) {
       this.personaje.setVelocityX(160);
     } else {
       this.personaje.setVelocityX(0);
-    }
+    } 
     if (this.cursor.up.isDown && this.personaje.body.touching.down) {
-      this.personaje.setVelocityY(-330);
+      this.personaje.setVelocityY(-300);
       }
+
   }
 }
