@@ -7,7 +7,13 @@ export default class Game extends Phaser.Scene {
 
   init() {
     this.gameOver = false;
-    this.timer = 10; // son segundos
+    this.timer = 30; // son segundos
+    this.score = 0; //contador de score
+    this.figuras = { //grupo de figuras con su valor
+      "triangulo": {puntos: 10, cantidad: 0},
+      "cuadrado": {puntos: 20, cantidad: 0},
+      "rombo": {puntos: 30, cantidad: 0}
+    }
   }
 
   preload() {
@@ -60,7 +66,7 @@ export default class Game extends Phaser.Scene {
     this.recolectables = this.physics.add.group();
     //colision del personaje y los recolectables
     this.physics.add.collider(this.personaje, this.recolectables);
-
+      // al contacto los recolectables desaparecen
     this.physics.add.collider(
       this.personaje,
       this.recolectables,
@@ -75,18 +81,11 @@ export default class Game extends Phaser.Scene {
     this.r = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
 
-    //agregar evento de 3 segundo
-    this.time.addEvent({
-      delay: 3000,
-      callback: console.log("hola"),
-      callback: this.onSecond,
-      callbackScope: this,
-      loop: true,
-    });
       //evento de 1 segungo
     this.time.addEvent({
-      delay: 1000,
+      delay: 2000, //tiempo entre spawneo de recolectables 3000=3 segundos
       callback: this.handlerTimer,
+      callback: this.onSecond,
       callbackScope: this,
       loop: true,
     });
@@ -96,6 +95,16 @@ export default class Game extends Phaser.Scene {
       fontSize: "32px",
       fill: "·fff",
     });
+    
+    
+    this.scoreText = this.add.text ( //Texto de contador de puntos
+    10,
+    40,
+    `Puntaje: ${this.score}
+    T: ${this.figuras["triangulo"].cantidad}
+    C: ${this.figuras["cuadrado"].cantidad}
+    R: ${this.figuras["rombo"].cantidad}`
+  );
   }
 
   onSecond() {
@@ -107,18 +116,52 @@ export default class Game extends Phaser.Scene {
       0,
       tipo
     );
-    recolectable.setVelocity(0, 100);
+    recolectable.setVelocity(0, 50);
   }
 
   onShapeCollect(personaje, recolectable, ) {
     console.log("recolectables ", recolectable.texture.key)
-    recolectable.destroy(); //se puede usar destroy o disable
+      //recolectable.destroy(); //se puede usar destroy o disable
+
+      const nombrefig = recolectable.texture.key; //Identificar cual figura se recolecta
+      const puntosfig = this.figuras[nombrefig].puntos; //Identificar cuantos puntos suma esa figura
+      this.score += puntosfig; //Sumar los puntos de la figura al score
+      console.log(this.score);
+      this.figuras[nombrefig].cantidad += 1;
+      
+      console.table(this.figuras);
+      console.log("score", this.score);
+      recolectable.destroy(); //Desaparecer el recolectable al chocar con el personaje
+      
+      this.scoreText.setText( //score
+      `Puntaje: ${this.score}
+      T: ${this.figuras["triangulo"].cantidad}
+      C: ${this.figuras["cuadrado"].cantidad}
+      R: ${this.figuras["rombo"].cantidad}`
+      );
+        
+      const cumplePuntos = this.score >= 50;
+      const cumpleFiguras = 
+      this.figuras["triangulo"].cantidad >= 2 &&
+      this.figuras["cuadrado"].cantidad >= 2 &&
+      this.figuras["rombo"].cantidad >= 2;
+       
+      if (cumplePuntos && cumpleFiguras) { //Ganar
+      console.log("Ganaste");
+      this.scene.start("end", {
+      score: this.score,
+      gameOver: this.gameOver,
+      });
+            
+    }
   }
-handleTimer() {
+        
+
+handlerTimer() { // cuenta regresiva
       this.timer -= 1;
       this.timerText.setText(`tiempo restante: ${this.timer}`);
       if (this.timer === 0) {
-        this.gameOver = false;
+        this.gameOver = true;
       }
     }
 
@@ -127,9 +170,12 @@ handleTimer() {
       this.Scene.restart();
     }
 if (this.gameOver) {
-  this.physics.pause();
-    this.timerText.setText("Game Over")
-    return;
+  //this.physics.pause();//pausar la pantalla
+  this.scene.start("end", {
+    score: this.score,
+    gameOver: this.gameOver,
+  })
+    //return; //Hace una salida de la funcion para que no se vuelva a ejecutar
 }
 
     //movimiento del personaje
