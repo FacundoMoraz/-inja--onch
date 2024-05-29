@@ -10,9 +10,10 @@ export default class Game extends Phaser.Scene {
     this.timer = 40; // son segundos
     this.score = 0; //contador de score
     this.figuras = { //grupo de figuras con su valor
-      "triangulo": {puntos: 30, cantidad: 0},
-      "cuadrado": {puntos: 10, cantidad: 0},
-      "rombo": {puntos: 20, cantidad: 0}
+      triangulo: {puntos: 30, cantidad: 0},
+      cuadrado: {puntos: 10, cantidad: 0},
+      rombo: {puntos: 20, cantidad: 0},
+      Reloj: {tiemPlus: 10, cantidad: 0}
     }
   }
 
@@ -34,9 +35,17 @@ export default class Game extends Phaser.Scene {
     this.load.image("cuadrado", "../public/assets/square.png");
 
     this.load.image("triangulo", "../public/assets/triangle.png");
+
+    //figura de reloj
+    this.load.image("Reloj", "../public/assets/Reloj.webp")
   }
 
-  create() { // todo lo que agrega algo en la pantalla va en el create
+  create() { 
+    
+    this.reloj = this.physics.add.group()
+    
+    
+    // todo lo que agrega algo en la pantalla va en el create
     //crear elementos
     this.cielo = this.add.image(400,300, "cielo");
     this.cielo.setScale(2);
@@ -46,8 +55,10 @@ export default class Game extends Phaser.Scene {
     //al grupo de plataformas agregar una plataforma
     this.plataformas.create(400,568,"plataforma").setScale(2).refreshBody();
 
-    this.plataformas.create(300,200,"plataforma").refreshBody();
+    this.plataformas.create(300,400,"plataforma").refreshBody();
 
+
+    
     //crear personaje //.image aqui porque es una imagen sin animacion, y .sprite cuando es algo con animacion
     this.personaje = this.physics.add.image(400,300, "personaje");
     this.personaje.setScale(0.1);
@@ -56,6 +67,16 @@ export default class Game extends Phaser.Scene {
     //agregar colision entre personaje y plataforma   // una version alternativa de agregar colision a plataformas / objetos (this.plataforma.setCollideWorldBounds(true))
     this.physics.add.collider(this.personaje, this.plataformas);// en los dos primero lugares dentro de este parentesis van los objetos que cuentan con la capacidad de colicionar entre si, en caso de ser varios objetos ponerlos dontro de un grupo y luego ponmer el nombre de ese grupo. Ademas en le puesto tres va la funcion callback que va a a hacer algo que nosotros definamos que haga, en el puesto cuatro va el "null" que es un codicier, y por ultimo el quinto puesto va el "this" que indica que funcion va a usar en una proxima funcion en caso que este seguido    
 
+
+    //NUEVO 28/5
+    //colision de recolectables con plataformas
+   this.physics.add.collider(
+    this.personaje, 
+    this.reloj, 
+    this.agregarTiempo, 
+    null, 
+    this)
+    this.physics.add.collider(this.plataformas, this.reloj)
 
     //crea teclas // esto es para teclas como las flechas, la barra espaciadora y el enter
     this.cursor = this.input.keyboard.createCursorKeys();
@@ -81,7 +102,14 @@ export default class Game extends Phaser.Scene {
 
     //reinicio
     this.r = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
-
+    
+    //evento de spawneo de reloj
+    this.time.addEvent({
+      delay: 8000,
+      callback: this.timeMas,
+      callbackScope: this,
+      loop: true,
+    })
 
       //evento de 1 segungo
       this.time.addEvent({
@@ -99,8 +127,8 @@ export default class Game extends Phaser.Scene {
         loop: true,
       });
 
-    //agregar texto de timer en la esquina superior derechaq
-    this.timerText = this.add.text(10, 10, `TIEMPO RESTANTE: ${this.timer}` , {
+    //agregar texto de timer en la esquina superior derecha
+    this.timerText = this.add.text(10, 10, `tiempo restante: ${this.timer}` , {
       fontSize: "32px",
       fill: "·fff",
     });
@@ -112,25 +140,63 @@ export default class Game extends Phaser.Scene {
     `Puntaje: ${this.score}
     T: ${this.figuras["triangulo"].cantidad}
     C: ${this.figuras["cuadrado"].cantidad}
-    R: ${this.figuras["rombo"].cantidad}`
+    R: ${this.figuras["rombo"].cantidad}
+    REG: ${this.figuras["Reloj"].cantidad}`
   );
+
+    // al contacto los recolectables desaparecen
+    this.physics.add.collider(
+      this.plataformas,
+      this.recolectables,
+      this.onRecolectableBounce,
+      null,
+      this
+    );
+
+
   }
 
+    timeMas() {
+      
+      let reloj = this.reloj.create(
+        Phaser.Math.Between(20, 790),
+        0,
+        "Reloj",
+      ).setScale(0.1)
+
+    }
+
   onSecond() {
-    //crear respawneo recolectable   // funcion callback
+    //crear RE spawneo recolectable   // funcion callback
     const tipos = ["triangulo","cuadrado","rombo"];
     const tipo = Phaser.Math.RND.pick(tipos);
     let recolectable = this.recolectables.create(
-      Phaser.Math.Between(10, 790),
+      Phaser.Math.Between(20, 790),
       0,
       tipo
     );
     recolectable.setVelocity(0, 20);
+
+
+    //NUEVO 28/5
+    //asignar rebote
+    const rebote = Phaser.Math.FloatBetween(0.4, 0.8);
+    recolectable.setBounce(0.75);
+
+    //set data
+    recolectable.setData("puntos", this.figuras[tipo].puntos);
+    recolectable.getData("tipo", tipo);
+
   }
 
   onShapeCollect(personaje, recolectable, ) {
+   
     console.log("recolectables ", recolectable.texture.key)
       //recolectable.destroy(); //se puede usar destroy o disable
+
+
+    const puntos = recolectable.getData("puntos");
+
 
       const nombrefig = recolectable.texture.key; //Identificar cual figura se recolecta
       const puntosfig = this.figuras[nombrefig].puntos; //Identificar cuantos puntos suma esa figura
@@ -166,13 +232,20 @@ export default class Game extends Phaser.Scene {
   }
         
 
-handlerTimer() { // cuenta regresiva
+handlerTimer() { 
+  // cuenta regresiva
       this.timer -= 1;
       this.timerText.setText(`tiempo restante: ${this.timer}`);
       if (this.timer === 0) {
         this.gameOver = true;
       }
     }
+
+  agregarTiempo(personaje, reloj) {
+    reloj.destroy()
+    this.timer += 10
+    console.log(this.timer);
+  }
 
   update() {
     if (this.gameOver && this.r.isDown) {
@@ -192,12 +265,26 @@ if (this.gameOver) {
       this.personaje.setVelocityX(-160);
     } else if (this.cursor.right.isDown){
       this.personaje.setVelocityX(160);
-    } else {
+    } else if (this.cursor.down.isDown) {
+      this.personaje.setVelocityY(600);
+    } 
+    else{
       this.personaje.setVelocityX(0);
     } 
     if (this.cursor.up.isDown && this.personaje.body.touching.down) {
       this.personaje.setVelocityY(-300);
       }
 
+  }
+
+  //NUEVO 28/5
+  onRecolectableBounce(plataforma, recolectable) {
+    console.log("recolectable rebote");
+    let puntos = recolectable.getData("puntos");
+    puntos -= 5;
+    recolectable.setData("puntos", puntos);
+    if (puntos<=0) {
+      recolectable.destroy();
+    }
   }
 }
