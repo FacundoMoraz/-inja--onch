@@ -58,8 +58,9 @@ export default class Game extends Phaser.Scene {
     //al grupo de plataformas agregar una plataforma
     this.plataformas.create(400,568,"plataforma").setScale(2).refreshBody();
 
-    this.plataformas.create(300,400,"plataforma").refreshBody();
-
+    this.plataformas.create(50,400,"plataforma").setScale(0.6).refreshBody();
+    this.plataformas.create(800,400,"plataforma").setScale(0.6).refreshBody();
+    this.plataformas.create(400,300,"plataforma").setScale(0.3).refreshBody();
 
     
     //crear personaje //.image aqui porque es una imagen sin animacion, y .sprite cuando es algo con animacion
