@@ -13,6 +13,7 @@ export default class Game extends Phaser.Scene {
       triangulo: {puntos: 30, cantidad: 0},
       cuadrado: {puntos: 10, cantidad: 0},
       rombo: {puntos: 20, cantidad: 0},
+      bomba: {puntos: -5, cantidad: 0},
       Reloj: {tiemPlus: 10, cantidad: 0}
     }
   }
@@ -35,6 +36,8 @@ export default class Game extends Phaser.Scene {
     this.load.image("cuadrado", "../public/assets/square.png");
 
     this.load.image("triangulo", "../public/assets/triangle.png");
+
+    this.load.image("bomba", "../public/assets/Bomba.png");
 
     //figura de reloj
     this.load.image("Reloj", "../public/assets/Reloj.webp")
@@ -141,6 +144,7 @@ export default class Game extends Phaser.Scene {
     T: ${this.figuras["triangulo"].cantidad}
     C: ${this.figuras["cuadrado"].cantidad}
     R: ${this.figuras["rombo"].cantidad}
+    BIMB: ${this.figuras["bomba"].cantidad}
     REG: ${this.figuras["Reloj"].cantidad}`
   );
 
@@ -168,7 +172,7 @@ export default class Game extends Phaser.Scene {
 
   onSecond() {
     //crear RE spawneo recolectable   // funcion callback
-    const tipos = ["triangulo","cuadrado","rombo"];
+    const tipos = ["triangulo","cuadrado","rombo", "bomba"];
     const tipo = Phaser.Math.RND.pick(tipos);
     let recolectable = this.recolectables.create(
       Phaser.Math.Between(20, 790),
@@ -212,9 +216,12 @@ export default class Game extends Phaser.Scene {
       `Puntaje: ${this.score}
       T: ${this.figuras["triangulo"].cantidad}
       C: ${this.figuras["cuadrado"].cantidad}
-      R: ${this.figuras["rombo"].cantidad}`
+      R: ${this.figuras["rombo"].cantidad}
+      BIMB: ${this.figuras["bomba"].cantidad}
+      REG: ${this.figuras["Reloj"].cantidad}`
       );
         
+      //requisitos para ganar
       const cumplePuntos = this.score >= 100;
       const cumpleFiguras = 
       this.figuras["triangulo"].cantidad >= 2 &&
