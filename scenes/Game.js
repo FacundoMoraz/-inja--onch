@@ -14,6 +14,7 @@ export default class Game extends Phaser.Scene {
       triangulo: { puntos: 30, cantidad: 0 },
       cuadrado: { puntos: 10, cantidad: 0 },
       rombo: { puntos: 20, cantidad: 0 },
+      bomba: { puntos: -5, cantidad: 0 },
       Reloj: { tiemPlus: 10, cantidad: 0 },
     };
   }
@@ -37,6 +38,8 @@ export default class Game extends Phaser.Scene {
 
     this.load.image("triangulo", "./public/triangle.png");
 
+    this.load.image("bomba", "./public/Bomba.png");
+
     //figura de reloj
     this.load.image("Reloj", "./public/Reloj.webp");
   }
@@ -54,7 +57,9 @@ export default class Game extends Phaser.Scene {
     //al grupo de plataformas agregar una plataforma
     this.plataformas.create(400, 568, "plataforma").setScale(2).refreshBody();
 
-    this.plataformas.create(300, 400, "plataforma").refreshBody();
+    this.plataformas.create(50, 400, "plataforma").setScale(0.6).refreshBody();
+    this.plataformas.create(800, 400, "plataforma").setScale(0.6).refreshBody();
+    this.plataformas.create(400, 300, "plataforma").setScale(0.3).refreshBody();
 
     //crear personaje //.image aqui porque es una imagen sin animacion, y .sprite cuando es algo con animacion
     this.personaje = this.physics.add.image(400, 300, "personaje");
@@ -136,6 +141,7 @@ export default class Game extends Phaser.Scene {
     T: ${this.figuras["triangulo"].cantidad}
     C: ${this.figuras["cuadrado"].cantidad}
     R: ${this.figuras["rombo"].cantidad}
+    BIMB: ${this.figuras["bomba"].cantidad}
     REG: ${this.figuras["Reloj"].cantidad}`
     );
 
@@ -157,7 +163,7 @@ export default class Game extends Phaser.Scene {
 
   onSecond() {
     //crear RE spawneo recolectable   // funcion callback
-    const tipos = ["triangulo", "cuadrado", "rombo"];
+    const tipos = ["triangulo", "cuadrado", "rombo", "bomba"];
     const tipo = Phaser.Math.RND.pick(tipos);
     let recolectable = this.recolectables.create(
       Phaser.Math.Between(20, 790),
@@ -197,9 +203,12 @@ export default class Game extends Phaser.Scene {
       `Puntaje: ${this.score}
       T: ${this.figuras["triangulo"].cantidad}
       C: ${this.figuras["cuadrado"].cantidad}
-      R: ${this.figuras["rombo"].cantidad}`
+      R: ${this.figuras["rombo"].cantidad}
+      BIMB: ${this.figuras["bomba"].cantidad}
+      REG: ${this.figuras["Reloj"].cantidad}`
     );
 
+    //requisitos para ganar
     const cumplePuntos = this.score >= 100;
     const cumpleFiguras =
       this.figuras["triangulo"].cantidad >= 2 &&
